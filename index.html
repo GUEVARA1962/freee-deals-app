@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Freee 仕訳直接登録 | AI Deals</title>
+    <meta
+      name="description"
+      content="AIを使ってレシート画像から自動で仕訳を直接登録"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="header">
+        <div class="logo">
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 32 32"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect width="32" height="32" rx="8" fill="#1B2A4C" />
+            <path
+              d="M8 16L14 22L24 10"
+              stroke="white"
+              stroke-width="3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span>Freee 仕訳直接登録</span>
+        </div>
+      </header>
+
+      <main class="main">
+        <div class="card">
+          <h1>レシート画像から仕訳を直接登録</h1>
+          <p class="subtitle">
+            画像をアップロードするだけで、AIが自動で仕訳を直接登録します（証憑紐付け済み）
+          </p>
+
+          <form id="upload-form">
+            <div class="form-group">
+              <label for="company-id">事業所ID</label>
+              <input
+                type="text"
+                id="company-id"
+                name="company_id"
+                placeholder="1234567"
+                required
+              />
+            </div>
+
+            <div class="upload-area" id="upload-area">
+              <input
+                type="file"
+                id="file-input"
+                accept="image/*"
+                multiple
+                hidden
+              />
+              <div class="upload-icon">
+                <svg
+                  width="48"
+                  height="48"
+                  viewBox="0 0 48 48"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M24 32V16M24 16L18 22M24 16L30 22"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M40 28V36C40 38.2091 38.2091 40 36 40H12C9.79086 40 8 38.2091 8 36V28"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </div>
+              <p class="upload-text">
+                クリックまたはドラッグ＆ドロップで<br />複数の画像をアップロード
+              </p>
+              <p class="upload-hint">
+                JPG, PNG, HEIC対応 (最大50ファイル、各10MB)
+              </p>
+            </div>
+
+            <div id="preview-container" class="preview-container hidden">
+              <!-- プレビューはJavaScriptで動的に生成 -->
+            </div>
+
+            <button type="submit" id="submit-btn" class="submit-btn" disabled>
+              <span class="btn-text">仕訳を作成</span>
+              <span class="btn-loading hidden">
+                <svg class="spinner" viewBox="0 0 24 24">
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="3"
+                    fill="none"
+                    stroke-dasharray="31.4 31.4"
+                    stroke-linecap="round"
+                  />
+                </svg>
+                処理中...
+              </span>
+            </button>
+          </form>
+        </div>
+
+        <div id="result-card" class="card result-card hidden">
+          <h2>処理完了</h2>
+          <div class="result-content">
+            <!-- 結果はJavaScriptで動的に生成 -->
+          </div>
+          <button
+            type="button"
+            id="new-upload-btn"
+            class="submit-btn secondary"
+          >
+            新しい画像をアップロード
+          </button>
+        </div>
+
+        <div id="error-card" class="card error-card hidden">
+          <h2>エラー</h2>
+          <p id="error-message">-</p>
+          <button type="button" id="retry-btn" class="submit-btn secondary">
+            再試行
+          </button>
+        </div>
+      </main>
+
+      <footer class="footer">
+        <p>Powered by n8n + OpenRouter AI</p>
+      </footer>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>

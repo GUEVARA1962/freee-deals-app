@@ -80,16 +80,30 @@ function handleDrop(e) {
   if (files.length > 0) validateAndSetFiles(files);
 }
 
+function isSupportedFile(file) {
+  const name = (file.name || "").toLowerCase();
+  const type = file.type || "";
+  if (type.startsWith("image/")) return true;
+  if (type === "application/pdf") return true;
+  // HEIC/HEIF や PDF は環境により type が空になることがあるので拡張子でも許可
+  if (/\.(pdf|heic|heif|jpe?g|png|gif|webp|bmp)$/i.test(name)) return true;
+  return false;
+}
+
+function isPdfFile(file) {
+  return (
+    file.type === "application/pdf" || /\.pdf$/i.test(file.name || "")
+  );
+}
+
 function validateAndSetFiles(files) {
   const validFiles = [];
 
   for (const file of files) {
-    // Check file type
-    if (!file.type.startsWith("image/")) {
+    if (!isSupportedFile(file)) {
       continue;
     }
 
-    // Check file size
     if (file.size > CONFIG.MAX_FILE_SIZE) {
       continue;
     }
@@ -98,7 +112,7 @@ function validateAndSetFiles(files) {
   }
 
   if (validFiles.length === 0) {
-    showError("有効な画像ファイルがありません");
+    showError("有効なファイルがありません (JPG/PNG/HEIC/PDF)");
     return;
   }
 
@@ -116,23 +130,41 @@ function showPreviews(files) {
   previewContainer.innerHTML = "";
 
   files.forEach((file, index) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const previewItem = document.createElement("div");
-      previewItem.className = "preview-item";
+    const previewItem = document.createElement("div");
+    previewItem.className = "preview-item";
+
+    if (isPdfFile(file)) {
       previewItem.innerHTML = `
-        <img src="${e.target.result}" alt="プレビュー ${index + 1}">
+        <div class="preview-pdf">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M14 2v6h6" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            <text x="12" y="17" text-anchor="middle" font-size="5" font-weight="700" fill="currentColor" font-family="sans-serif">PDF</text>
+          </svg>
+        </div>
         <button type="button" class="remove-btn" data-index="${index}">×</button>
         <span class="preview-name">${file.name}</span>
       `;
       previewContainer.appendChild(previewItem);
-
-      // Add remove event listener
       previewItem.querySelector(".remove-btn").addEventListener("click", () => {
         removeFile(index);
       });
-    };
-    reader.readAsDataURL(file);
+    } else {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        previewItem.innerHTML = `
+          <img src="${e.target.result}" alt="プレビュー ${index + 1}">
+          <button type="button" class="remove-btn" data-index="${index}">×</button>
+          <span class="preview-name">${file.name}</span>
+        `;
+        previewContainer.appendChild(previewItem);
+
+        previewItem.querySelector(".remove-btn").addEventListener("click", () => {
+          removeFile(index);
+        });
+      };
+      reader.readAsDataURL(file);
+    }
   });
 
   uploadArea.classList.add("hidden");
@@ -182,10 +214,14 @@ async function handleSubmit(e) {
 
       try {
         const base64Image = await fileToBase64(file);
+        const mimeType =
+          file.type ||
+          (isPdfFile(file) ? "application/pdf" : "application/octet-stream");
         const response = await sendToWebhook({
           company_id: parseInt(companyIdInput.value.trim(), 10),
           image: base64Image,
           file_name: file.name,
+          mime_type: mimeType,
         });
 
         if (response.success) {
